@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+~$*.xlsx
+/sample.xlsx
+/sample.md
+*.zip
