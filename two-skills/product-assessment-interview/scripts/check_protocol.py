@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Check a Markdown interview protocol for completeness.
 
-    python3 scripts/check_protocol.py protocol_<фамилия>.md [--artifacts artifacts_<фамилия>]
+    python3 scripts/check_protocol.py protocol_<фамилия>.md [--artifacts artifacts_<фамилия>] [--partial]
+
+--partial: for a break — checks only the header and the blocks already written, not the questions still ahead.
 
 The protocol format is described in SKILL.md («Формат протокола»). Checks:
   * header fields (ФИО, Команда, Роль, PI) are filled, mini-products and PI goals are listed;
@@ -9,9 +11,10 @@ The protocol format is described in SKILL.md («Формат протокола�
   * each block is either «ответ» (with a non-empty «Ответ») or «не задавался» (with «Причина пропуска»);
   * blocks that need an artifact list artifacts or explain in «Артефакт не приложен» why there are none;
   * every listed artifact has a description;
-  * with --artifacts: every saved artifact named in the protocol exists in the folder and is named after its
-    question (HYP-6_1.png under «### HYP-6»), and every file in the folder is mentioned in the protocol.
-    An artifact that could not be saved is listed as «- `не сохранён` — описание».
+  * with --artifacts: every artifact named in the protocol exists in the folder; a block may list its own files
+    (HYP-6_1.png under «### HYP-6») or refer to a file of another question that is already in the folder
+    (HYP-13_1.xlsx under «### MET-12»); every file in the folder (including PI_*.* for the PI goals screenshot)
+    is mentioned somewhere in the protocol. An artifact that could not be saved is listed as «- `не сохранён` — описание».
 
 Exit code 1 and a list of problems if something is missing.
 """
@@ -27,6 +30,7 @@ QUESTIONS = ROOT / "references" / "questions.json"
 HEADER_RE = re.compile(r"^- \*\*(.+?):\*\*\s*(.*)$")
 FIELD_RE = re.compile(r"^\*\*(.+?):\*\*\s*(.*)$")
 ARTIFACT_RE = re.compile(r"^- `(.+?)`\s*[—-]\s*(.*)$")
+FILE_RE = re.compile(r"^((HYP|CA|MET|GOAL)-\d+|PI)_\d+(\.\w+)?$")
 
 
 def parse(text):
@@ -59,7 +63,7 @@ def parse(text):
     return header, sections, blocks
 
 
-def check(text, artifacts_dir=None):
+def check(text, artifacts_dir=None, partial=False):
     header, sections, blocks = parse(text)
     q = json.loads(QUESTIONS.read_text(encoding="utf-8"))
     problems = []
@@ -76,7 +80,8 @@ def check(text, artifacts_dir=None):
             known.add(b["id"])
             rec = blocks.get(b["id"])
             if rec is None:
-                problems.append(f"{b['id']}: нет блока")
+                if not partial:
+                    problems.append(f"{b['id']}: нет блока")
                 continue
             status = rec.get("Статус", "").lower()
             if status.startswith("не задавался"):
@@ -97,13 +102,15 @@ def check(text, artifacts_dir=None):
                 mentioned.add(name)
                 if artifacts_dir is None or name == "не сохранён":
                     continue
-                if not name.startswith(b["id"] + "_"):
-                    problems.append(f"{b['id']}: файл {name} назван не по номеру вопроса")
-                if not (artifacts_dir / name).is_file():
+                exists = (artifacts_dir / name).is_file()
+                if not exists:
                     problems.append(f"{b['id']}: файла {name} нет в папке {artifacts_dir}")
+                elif not FILE_RE.match(name):
+                    problems.append(f"{b['id']}: файл {name} назван не по номеру вопроса (ожидается вида {b['id']}_1.png)")
     for extra in sorted(set(blocks) - known):
         problems.append(f"неизвестный id блока: {extra}")
     if artifacts_dir is not None and artifacts_dir.is_dir():
+        mentioned |= set(re.findall(r"`([^`]+)`", text))
         for f in sorted(p.name for p in artifacts_dir.iterdir() if p.is_file()):
             if f not in mentioned:
                 problems.append(f"файл {f} есть в папке артефактов, но не упомянут в протоколе")
@@ -114,13 +121,14 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("protocol")
     ap.add_argument("--artifacts", help="папка с сохранёнными артефактами")
+    ap.add_argument("--partial", action="store_true", help="перерыв: проверять только уже записанные блоки")
     args = ap.parse_args()
     art = Path(args.artifacts) if args.artifacts else None
-    problems = check(Path(args.protocol).read_text(encoding="utf-8"), art)
+    problems = check(Path(args.protocol).read_text(encoding="utf-8"), art, args.partial)
     if problems:
         print(f"Не хватает ({len(problems)}):", *problems, sep="\n  - ")
         sys.exit(1)
-    print("Протокол полный.")
+    print("Записанная часть протокола в порядке." if args.partial else "Протокол полный.")
 
 
 if __name__ == "__main__":

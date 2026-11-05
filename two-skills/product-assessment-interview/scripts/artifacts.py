@@ -5,6 +5,8 @@ Save a file the employee attached (numbering is automatic: HYP-6_1.png, HYP-6_2.
 
     python3 scripts/artifacts.py save <file> <question-id> --dir artifacts_<фамилия>
 
+<question-id> is a question id (HYP-6, CA-20, ...) or PI for the PI goals list (screenshot of goals -> PI_1.png).
+
 If <file> is just a name and is not found as given, it is searched in the usual upload folders
 (/mnt/user-data/uploads, /mnt/data, /mnt/user-data, the current folder, the home folder).
 Prints the new file name to put into the protocol.
@@ -26,7 +28,7 @@ import sys
 import zipfile
 from pathlib import Path
 
-ID_RE = re.compile(r"^(HYP|CA|MET|GOAL)-\d+$")
+ID_RE = re.compile(r"^((HYP|CA|MET|GOAL)-\d+|PI)$")
 SEARCH_DIRS = ["/mnt/user-data/uploads", "/mnt/data", "/mnt/user-data", ".", str(Path.home())]
 
 
@@ -53,7 +55,7 @@ def find(src):
 def cmd_save(args):
     qid = args.question_id.upper()
     if not ID_RE.match(qid):
-        sys.exit(f"Неверный id вопроса: {args.question_id} (ожидается, например, HYP-6, CA-20, MET-8, GOAL-9)")
+        sys.exit(f"Неверный id вопроса: {args.question_id} (ожидается, например, HYP-6, CA-20, MET-8, GOAL-9 или PI для списка целей PI)")
     src = find(args.file)
     if src is None:
         sys.exit(f"Файл не найден: {args.file}. Попросите сотрудника приложить его файлом, а не вставкой в сообщение.")
