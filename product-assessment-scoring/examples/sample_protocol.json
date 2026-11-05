@@ -1,0 +1,638 @@
+{
+ "type": "product-assessment-protocol",
+ "version": 1,
+ "status": "completed",
+ "employee": "Анна Смирнова (тестовый персонаж)",
+ "team": "Связи и интеграции (тест)",
+ "role": "PM",
+ "mini_products": [
+  {
+   "name": "Реестр интеграций",
+   "description": "регистрация и поиск интеграций между АС"
+  },
+  {
+   "name": "Карта зависимостей АС",
+   "description": "визуализация связей АС"
+  }
+ ],
+ "pi": "PI 26.3",
+ "date": "2026-11-05",
+ "pi_goals": [
+  {
+   "n": 1,
+   "text": "Автоподсказка дублей при регистрации интеграции",
+   "mini_product": "Реестр интеграций"
+  },
+  {
+   "n": 2,
+   "text": "Нечёткий поиск по АС и интеграциям",
+   "mini_product": "Карта зависимостей АС"
+  },
+  {
+   "n": 3,
+   "text": "Авто-обнаружение связей по журналам вызовов",
+   "mini_product": "Карта зависимостей АС"
+  },
+  {
+   "n": 4,
+   "text": "Поля для требований ЦБ по критичным интеграциям",
+   "mini_product": "Реестр интеграций"
+  },
+  {
+   "n": 5,
+   "text": "Миграция хранилища на новую версию СУБД",
+   "mini_product": "Реестр интеграций"
+  }
+ ],
+ "next_question": "",
+ "blocks": {
+  "HYP-4": {
+   "status": "answered",
+   "asked": "Если классифицировать фичи по типам — какие типы бывают?",
+   "answer": "Продуктовые, регуляторные, тех. долг, поддержка/гигиена.",
+   "followups": [],
+   "artifacts": []
+  },
+  "HYP-5": {
+   "status": "answered",
+   "asked": "Разнесите цели PI по этим типам. Сколько продуктовых?",
+   "answer": "№1–№3 продуктовые, №4 регуляторка, №5 тех. долг. Продуктовых 3.",
+   "followups": [],
+   "artifacts": []
+  },
+  "HYP-6": {
+   "status": "answered",
+   "asked": "По каким продуктовым целям гипотезы проверялись через исследования? Приложите итоги.",
+   "answer": "По всем трём: UX-тесты прототипов с 5–6 архитекторами.",
+   "followups": [
+    {
+     "q": "По цели №3 вместо отчёта ссылка — можете приложить скриншот?",
+     "a": "Там всё есть, откройте ссылку."
+    }
+   ],
+   "artifacts": [
+    {
+     "file": "artifacts/HYP-6_1.png",
+     "description": "Скриншот отчёта UX-теста по цели №1: 6 участников, 4 из 6 нашли дубль с подсказкой, дата 12.08.2026. Факт."
+    },
+    {
+     "file": "artifacts/HYP-6_2.png",
+     "description": "Скриншот отчёта UX-теста по цели №2: 5 участников, время поиска 40 → 15 сек на прототипе. Факт."
+    }
+   ],
+   "artifact_note": "По цели №3 прислана только ссылка на Confluence, содержимое приложить отказалась."
+  },
+  "HYP-8": {
+   "status": "answered",
+   "asked": "Какие основные источники гипотез?",
+   "answer": "Обращения в поддержку, аналитика поиска, интервью с архитекторами.",
+   "followups": [],
+   "artifacts": []
+  },
+  "HYP-9": {
+   "status": "answered",
+   "asked": "Что стало триггером одной из гипотез PI?",
+   "answer": "40+ обращений о дублях интеграций за квартал → автоподсказка дублей.",
+   "followups": [
+    {
+     "q": "А для другой гипотезы?",
+     "a": "30% поисков без результата по логам → нечёткий поиск."
+    }
+   ],
+   "artifacts": []
+  },
+  "HYP-10": {
+   "status": "answered",
+   "asked": "Покажите гипотезы PI с числовым прогнозом эффекта. Для какой доли он задан?",
+   "answer": "Для 5 из 7 гипотез.",
+   "followups": [],
+   "artifacts": [],
+   "artifact_note": "Примеры формулировок пересказала устно, файл не приложила."
+  },
+  "HYP-11": {
+   "status": "answered",
+   "asked": "Сверка: прогноз у 5 из 7 гипотез — верно?",
+   "answer": "Да.",
+   "followups": [],
+   "artifacts": [],
+   "artifact_note": "Артефакт тот же, что в HYP-10: не приложен."
+  },
+  "HYP-13": {
+   "status": "answered",
+   "asked": "Насколько попадаете в прогнозы? Приложите план/факт.",
+   "answer": "Примерно в половине случаев.",
+   "followups": [],
+   "artifacts": [],
+   "artifact_note": "Обещала прислать таблицу позже, не прислала."
+  },
+  "HYP-15": {
+   "status": "answered",
+   "asked": "Как метрики гипотез связаны с видением мини-продукта?",
+   "answer": "В видении: «сократить время поиска интеграционных связей вдвое к 2027»; метрика гипотез — время поиска связи.",
+   "followups": [],
+   "artifacts": []
+  },
+  "HYP-16": {
+   "status": "answered",
+   "asked": "Были ли в PI disrupt-инициативы?",
+   "answer": "Нет, докручиваем.",
+   "followups": [
+    {
+     "q": "Почему?",
+     "a": "Фокус PI — стабилизация после миграции."
+    }
+   ],
+   "artifacts": []
+  },
+  "HYP-18": {
+   "status": "answered",
+   "asked": "По каким бенчмаркам видно, что мини-продукт развивается лучше аналогов?",
+   "answer": "Время построения карты зависимостей в зарубежных EA-инструментах.",
+   "followups": [],
+   "artifacts": []
+  },
+  "HYP-19": {
+   "status": "answered",
+   "asked": "Делали замеры по этому бенчмарку? Приложите итоги.",
+   "answer": "Один раз.",
+   "followups": [],
+   "artifacts": [],
+   "artifact_note": "Прислана только ссылка."
+  },
+  "HYP-20": {
+   "status": "answered",
+   "asked": "Как часто делаете замеры?",
+   "answer": "Пока был один.",
+   "followups": [],
+   "artifacts": [],
+   "artifact_note": "—"
+  },
+  "HYP-21": {
+   "status": "answered",
+   "asked": "Сколько замеров сделали?",
+   "answer": "Один.",
+   "followups": [],
+   "artifacts": [],
+   "artifact_note": "—"
+  },
+  "HYP-22": {
+   "status": "answered",
+   "asked": "Что показал замер?",
+   "answer": "Мы примерно на уровне.",
+   "followups": [],
+   "artifacts": [],
+   "artifact_note": "Итогов не приложено."
+  },
+  "CA-4": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "CA-5": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "CA-6": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "CA-7": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "CA-8": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "CA-9": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "CA-10": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "CA-11": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "CA-12": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "CA-13": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "CA-14": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "CA-15": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "CA-16": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "CA-17": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "CA-18": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "CA-19": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "CA-20": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": [],
+   "artifact_note": "(сокращено в примере)"
+  },
+  "CA-22": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "CA-23": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "CA-24": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "CA-25": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": [],
+   "artifact_note": "(сокращено в примере)"
+  },
+  "CA-26": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": [],
+   "artifact_note": "(сокращено в примере)"
+  },
+  "CA-28": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": [],
+   "artifact_note": "(сокращено в примере)"
+  },
+  "MET-4": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "MET-5": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "MET-6": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "MET-7": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "MET-8": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": [],
+   "artifact_note": "(сокращено в примере)"
+  },
+  "MET-10": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": [],
+   "artifact_note": "(сокращено в примере)"
+  },
+  "MET-12": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": [],
+   "artifact_note": "(сокращено в примере)"
+  },
+  "MET-14": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "MET-15": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "MET-16": {
+   "status": "skipped",
+   "skip_reason": "MET-15: производственные метрики не прогнозируются"
+  },
+  "MET-18": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "MET-19": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": [],
+   "artifact_note": "(сокращено в примере)"
+  },
+  "MET-21": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "MET-22": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": [],
+   "artifact_note": "(сокращено в примере)"
+  },
+  "MET-24": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "MET-25": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "MET-26": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "MET-27": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": [],
+   "artifact_note": "(сокращено в примере)"
+  },
+  "MET-29": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": [],
+   "artifact_note": "(сокращено в примере)"
+  },
+  "MET-31": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": [],
+   "artifact_note": "(сокращено в примере)"
+  },
+  "GOAL-4": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "GOAL-5": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "GOAL-6": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "GOAL-7": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "GOAL-8": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "GOAL-9": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "GOAL-10": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "GOAL-11": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "GOAL-12": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "GOAL-13": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "GOAL-14": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "GOAL-15": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "GOAL-16": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "GOAL-17": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "GOAL-18": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "GOAL-19": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "GOAL-20": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "GOAL-21": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "GOAL-22": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  },
+  "GOAL-23": {
+   "status": "answered",
+   "asked": "(сокращено в примере)",
+   "answer": "(сокращено в примере)",
+   "followups": [],
+   "artifacts": []
+  }
+ },
+ "notes": "Пример: блок «Гипотезы» заполнен полностью, остальные блоки сокращены. Ответов «именно так» не было."
+}
