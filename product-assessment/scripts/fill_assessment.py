@@ -199,7 +199,7 @@ def validate(results, q):
     for bid in (results.get("comments") or {}):
         if bid not in blocks:
             errors.append(f"Неизвестный блок комментария '{bid}'")
-    missing = [rid for rid in rules if rid not in (results.get("scores") or {})]
+    missing = [rid for rid, r in rules.items() if rid not in (results.get("scores") or {}) and r["max"] > 0]
     if missing:
         warnings.append(f"Нет оценки для {len(missing)} правил — проставлен 0: " + ", ".join(missing))
     return errors, warnings
