@@ -317,7 +317,8 @@ def report_md(results, summary):
     total = sum(s["total"] for s in summary)
     mx = sum(s["max"] for s in summary)
     lines = [f"# Итоги продуктового ассесмента — {results.get('employee', '')}".rstrip(" —"), ""]
-    meta = [("Продукт", results.get("product")), ("PI", results.get("pi")), ("Дата", results.get("date")),
+    meta = [("Команда", results.get("team")), ("Роль", results.get("role")),
+            ("Мини-продукт(ы)", results.get("product")), ("PI", results.get("pi")), ("Дата", results.get("date")),
             ("Ассесор", results.get("assessor"))]
     lines += [f"- **{k}:** {v}" for k, v in meta if v]
     if results.get("pi_goals"):
