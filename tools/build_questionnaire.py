@@ -8,8 +8,8 @@ The master template is template/assessment_template.xlsx. Run this after it chan
 What it does:
   * copies the template into the assets/ of the skills that fill Excel:
       single-skill/product-assessment, two-skills/product-assessment-scoring;
-  * writes references/questionnaire.{json,md} (questions + scoring rules) into those two skills;
-  * writes two-skills/product-assessment-interview/references/questions.{json,md} - questions only,
+  * writes references/questionnaire.md (questions + scoring rules + Excel cells) into those two skills;
+  * writes two-skills/product-assessment-interview/references/questions.md - questions only,
     NO scoring rules, points or level descriptions (this skill is given to employees).
 
 The template layout (see the "Вводные данные" sheet, item 7):
@@ -19,7 +19,6 @@ The template layout (see the "Вводные данные" sheet, item 7):
   * light-blue cell after the last
     score cell of a row              - the comment.
 """
-import json
 import re
 import shutil
 from pathlib import Path
@@ -137,11 +136,14 @@ def to_markdown(data):
     out = ["# Опросник продуктового ассесмента (сгенерировано из шаблона)", "",
            "Файл сгенерирован `tools/build_questionnaire.py`. Не редактируйте вручную: правьте Excel-шаблон и перегенерируйте.",
            "",
-           "Формат: каждый **блок** = вопросы + правила начисления баллов. `id` правила используется как ключ в JSON с оценками.",
-           "Баллы внутри одной строки складываются по уровням; варианты внутри одного правила взаимоисключающие (выбирается один).",
+           "Формат: каждый **блок** = вопросы + правила начисления баллов. `id` правила используется в файле результатов (`- HYP-6-L2: 2`).",
+           "Разные ячейки строки суммируются; из вариантов внутри одной ячейки выбирается один.",
+           "Служебные строки «Ячейки:», «#### Блок» и «- `id` · уровень» читает скрипт `fill_assessment.py`: не меняйте их разметку.",
            ""]
     for s in data["sections"]:
-        out += [f"## {s['sheet']} — {s['title']} (max {s['max_total']} баллов)", ""]
+        out += [f"## {s['sheet']} — {s['title']} (max {s['max_total']} баллов)", "",
+                f"Ячейки: итог `{s['total_cell']}`, итоги по уровням — строка {s['level_totals_row']}, "
+                f"строка на «Радаре» — {s['radar_row']}", ""]
         out += ["### Описание уровней", ""]
         for lvl, txt in s["levels"].items():
             out += [f"**Уровень {lvl}.**", "", txt, ""]
@@ -200,11 +202,9 @@ if __name__ == "__main__":
     for skill in SCORING_SKILLS:
         (skill / "assets").mkdir(parents=True, exist_ok=True)
         shutil.copyfile(TEMPLATE, skill / "assets" / "assessment_template.xlsx")
-        (skill / "references" / "questionnaire.json").write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
         (skill / "references" / "questionnaire.md").write_text(to_markdown(data), encoding="utf-8")
     idata = interview_data(data)
     (INTERVIEW / "references").mkdir(parents=True, exist_ok=True)
-    (INTERVIEW / "references" / "questions.json").write_text(json.dumps(idata, ensure_ascii=False, indent=1), encoding="utf-8")
     (INTERVIEW / "references" / "questions.md").write_text(interview_markdown(idata), encoding="utf-8")
     for s in data["sections"]:
         print(f"{s['sheet']}: {len(s['blocks'])} блоков, сумма правил {s['rules_max_sum']} / max {s['max_total']}",

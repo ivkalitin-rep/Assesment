@@ -94,10 +94,14 @@ product-assessment-interview                product-assessment-scoring
   но сохранить может не суметь: тогда он просит приложить её файлом, а если не вышло — отмечает в протоколе
   «не сохранён» с описанием.
 
-### Что остаётся у оценщика
+### Что выдаёт оценщик
 
-Для заполнения Excel оценщик собирает внутренний JSON с баллами по каждому правилу и передаёт его скрипту
-`fill_assessment.py`. Этот файл рабочий, наружу его передавать не нужно.
+Оценщик записывает баллы по каждому правилу и комментарии в файл результатов `results_<фамилия>.md`
+(разделы «Оценки», «Зоны роста», «Общая рекомендация»). Из него скрипт `fill_assessment.py` заполняет Excel.
+Ассесор получает Excel, краткий отчёт `.md` и сам файл результатов — в нём расчёт каждого балла.
+
+**Во всём репозитории используется только Markdown:** протокол, файл результатов, файл перерыва единого скилла
+и служебные файлы опросника (`questionnaire.md`, `questions.md`), которые читают скрипты. JSON не используется.
 
 ## Структура
 
@@ -108,22 +112,22 @@ tools/build_questionnaire.py           # шаблон → файлы вопро�
 single-skill/product-assessment/       # единый скилл
 ├── SKILL.md
 ├── assets/assessment_template.xlsx    # копия мастер-шаблона
-├── references/{methodology.md, questionnaire.md, questionnaire.json}
+├── references/{methodology.md, questionnaire.md}
 ├── scripts/{fill_assessment.py, artifacts.py}
-└── examples/sample_results.json
+└── examples/sample_results.md
 
 two-skills/
 ├── product-assessment-interview/      # раздаётся сотрудникам
 │   ├── SKILL.md
-│   ├── references/{interview_rules.md, questions.md, questions.json}
+│   ├── references/{interview_rules.md, questions.md}
 │   ├── scripts/{artifacts.py, check_protocol.py}
 │   └── examples/sample_protocol.md
 └── product-assessment-scoring/        # только для ассесоров
     ├── SKILL.md
     ├── assets/assessment_template.xlsx
-    ├── references/{methodology.md, questionnaire.md, questionnaire.json}
+    ├── references/{methodology.md, questionnaire.md}
     ├── scripts/fill_assessment.py
-    └── examples/{sample_protocol.md, sample_results.json}
+    └── examples/{sample_protocol.md, sample_results.md}
 ```
 
 ## Установка
@@ -183,7 +187,7 @@ pip install lxml openpyxl
 ```
 
 ```bash
-python3 single-skill/product-assessment/scripts/fill_assessment.py single-skill/product-assessment/examples/sample_results.json -o sample.xlsx
+python3 single-skill/product-assessment/scripts/fill_assessment.py single-skill/product-assessment/examples/sample_results.md -o sample.xlsx
 ```
 
 ```bash
@@ -191,5 +195,5 @@ python3 two-skills/product-assessment-interview/scripts/check_protocol.py two-sk
 ```
 
 ```bash
-python3 two-skills/product-assessment-scoring/scripts/fill_assessment.py two-skills/product-assessment-scoring/examples/sample_results.json -o sample.xlsx
+python3 two-skills/product-assessment-scoring/scripts/fill_assessment.py two-skills/product-assessment-scoring/examples/sample_results.md -o sample.xlsx
 ```
