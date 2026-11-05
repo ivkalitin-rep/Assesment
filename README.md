@@ -30,10 +30,15 @@ product-assessment-interview                product-assessment-scoring
   2. Вопросы по одному: Гипотезы → ЦА →       6. Ставит баллы по правилам опросника
      Метрики → Цели и стратегия               7. Зоны роста и общая рекомендация
   3. Собирает ответы и артефакты              8. Заполняет Excel: «Радар», «Зоны роста»
-  4. Выдаёт протокол (json + md + zip)  ──►   9. Обратную связь сотруднику даёт ассесор
+  4. Выдаёт протокол (один файл .md)    ──►   9. Обратную связь сотруднику даёт ассесор
 ```
 
 В интервьюере нет правил начисления, баллов, описаний уровней и шаблона Excel: он ничего не оценивает.
+
+**Передача данных между скиллами — один Markdown-файл** `protocol_<фамилия>.md`: шапка (ФИО, команда, роль, PI, статус),
+мини-продукты, цели PI, ответы по каждому вопросу (`### HYP-6` и т. д.) с уточнениями и описаниями артефактов.
+Этот же файл используется для продолжения интервью после перерыва. Сами артефакты сотрудник хранит у себя
+и передаёт ассесору по запросу.
 
 ## Структура
 
@@ -53,13 +58,13 @@ two-skills/
 │   ├── SKILL.md
 │   ├── references/{interview_rules.md, questions.md, questions.json}
 │   ├── scripts/check_protocol.py
-│   └── examples/sample_protocol.json
+│   └── examples/sample_protocol.md
 └── product-assessment-scoring/        # только для ассесоров
     ├── SKILL.md
     ├── assets/assessment_template.xlsx
     ├── references/{methodology.md, questionnaire.md, questionnaire.json}
     ├── scripts/fill_assessment.py
-    └── examples/{sample_protocol.json, sample_results.json}
+    └── examples/{sample_protocol.md, sample_results.json}
 ```
 
 ## Установка
@@ -85,7 +90,7 @@ cd two-skills && zip -r product-assessment-interview.zip product-assessment-inte
 
 - Протокол — файл у сотрудника, и до передачи ассесору его можно отредактировать. Интервьюер просит приложить
   ссылку на чат интервью, если среда позволяет ей поделиться.
-- Описания артефактов в протоколе делает интервьюер. Ассесор может попросить оригиналы и сверить.
+- Описания артефактов в протоколе делает интервьюер, самих файлов в протоколе нет. Ассесор может запросить оригиналы у сотрудника и сверить.
 - Вопросы интервью сотруднику видны. Закрыты правила начисления и баллы.
 
 ## Общие правила и синхронизация
@@ -123,7 +128,7 @@ python3 single-skill/product-assessment/scripts/fill_assessment.py single-skill/
 ```
 
 ```bash
-python3 two-skills/product-assessment-interview/scripts/check_protocol.py two-skills/product-assessment-interview/examples/sample_protocol.json
+python3 two-skills/product-assessment-interview/scripts/check_protocol.py two-skills/product-assessment-interview/examples/sample_protocol.md
 ```
 
 ```bash

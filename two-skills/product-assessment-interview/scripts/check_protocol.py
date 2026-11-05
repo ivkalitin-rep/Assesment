@@ -1,138 +1,105 @@
 #!/usr/bin/env python3
-"""Check an interview protocol for completeness, render it to Markdown and pack it for the assessor.
+"""Check a Markdown interview protocol for completeness.
 
-    python3 scripts/check_protocol.py protocol.json [--pack protocol.zip]
+    python3 scripts/check_protocol.py protocol_<фамилия>.md
 
-Checks:
-  * every question block from references/questions.json is present and is either "answered" (with an answer)
-    or "skipped" (with a reason);
-  * blocks that need an artifact either have attached artifacts or an artifact_note explaining why not;
-  * attached artifact files exist next to the protocol.
+The protocol format is described in SKILL.md («Формат протокола»). Checks:
+  * header fields (ФИО, Команда, Роль, PI) are filled, mini-products and PI goals are listed;
+  * every question id from references/questions.json has a block «### <id>»;
+  * each block is either «ответ» (with a non-empty «Ответ») or «не задавался» (with «Причина пропуска»);
+  * blocks that need an artifact list artifacts or explain in «Артефакт не приложен» why there are none;
+  * every listed artifact has a description.
 
-Writes <protocol>.md next to the JSON. With --pack, builds a zip with the JSON, the Markdown and the artifact files.
-Exit code 1 if something is missing (the Markdown and the zip are still written, so a break can be saved).
+Exit code 1 and a list of problems if something is missing.
 """
-import argparse
 import json
+import re
 import sys
-import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 QUESTIONS = ROOT / "references" / "questions.json"
 
+HEADER_RE = re.compile(r"^- \*\*(.+?):\*\*\s*(.*)$")
+FIELD_RE = re.compile(r"^\*\*(.+?):\*\*\s*(.*)$")
+ARTIFACT_RE = re.compile(r"^- `(.+?)`\s*[—-]\s*(.*)$")
 
-def load(path):
-    return json.loads(Path(path).read_text(encoding="utf-8"))
+
+def parse(text):
+    header, sections, blocks = {}, {}, {}
+    section = block = field = None
+    for raw in text.splitlines():
+        line = raw.rstrip()
+        if line.startswith("## "):
+            section, block, field = line[3:].strip(), None, None
+            sections.setdefault(section, [])
+            continue
+        if line.startswith("### "):
+            block, field = line[4:].strip().strip("`").split()[0], None
+            blocks[block] = {}
+            continue
+        if block:
+            m = FIELD_RE.match(line)
+            if m:
+                field = m.group(1).strip()
+                blocks[block][field] = m.group(2).strip()
+            elif field and line.strip():
+                blocks[block][field] = (blocks[block][field] + "\n" + line.strip()).strip()
+            continue
+        if section is None:
+            m = HEADER_RE.match(line)
+            if m:
+                header[m.group(1).strip()] = m.group(2).strip()
+        elif line.strip():
+            sections[section].append(line.strip())
+    return header, sections, blocks
 
 
-def check(protocol, base_dir):
-    q = load(QUESTIONS)
-    blocks = protocol.get("blocks") or {}
+def check(text):
+    header, sections, blocks = parse(text)
+    q = json.loads(QUESTIONS.read_text(encoding="utf-8"))
     problems = []
-    for key in ("employee", "team", "role", "pi"):
-        if not protocol.get(key):
+    for key in ("ФИО", "Команда", "Роль", "PI", "Статус"):
+        if not header.get(key):
             problems.append(f"не заполнено поле «{key}»")
-    if not protocol.get("mini_products"):
-        problems.append("не перечислены мини-продукты")
-    if not protocol.get("pi_goals"):
-        problems.append("нет списка целей PI")
+    if not sections.get("Мини-продукты"):
+        problems.append("не перечислены мини-продукты (раздел «## Мини-продукты»)")
+    if not sections.get("Цели PI"):
+        problems.append("нет списка целей PI (раздел «## Цели PI»)")
     known = set()
     for s in q["sections"]:
         for b in s["blocks"]:
             known.add(b["id"])
             rec = blocks.get(b["id"])
-            if not rec:
+            if rec is None:
+                problems.append(f"{b['id']}: нет блока")
+                continue
+            status = rec.get("Статус", "").lower()
+            if status.startswith("не задавался"):
+                if not rec.get("Причина пропуска"):
+                    problems.append(f"{b['id']}: не задавался, но причина не указана")
+                continue
+            if not status.startswith("ответ") or not rec.get("Ответ"):
                 problems.append(f"{b['id']}: нет ответа")
                 continue
-            st = rec.get("status")
-            if st == "skipped":
-                if not rec.get("skip_reason"):
-                    problems.append(f"{b['id']}: пропущен без причины")
-                continue
-            if st != "answered" or not str(rec.get("answer", "")).strip():
-                problems.append(f"{b['id']}: нет ответа")
-                continue
-            arts = rec.get("artifacts") or []
-            if b["needs_artifact"] and not arts and not rec.get("artifact_note"):
-                problems.append(f"{b['id']}: нужен артефакт или пояснение, почему его нет")
-            for a in arts:
-                if not a.get("description"):
-                    problems.append(f"{b['id']}: у артефакта {a.get('file', '?')} нет описания")
-                f = a.get("file")
-                if f and not (base_dir / f).exists():
-                    problems.append(f"{b['id']}: файл артефакта не найден: {f}")
-    for extra in set(blocks) - known:
+            arts = [ARTIFACT_RE.match(x) for x in rec.get("Артефакты", "").splitlines() if x.startswith("- ")]
+            if b["needs_artifact"] and not arts and not rec.get("Артефакт не приложен"):
+                problems.append(f"{b['id']}: нужен артефакт или пояснение «Артефакт не приложен»")
+            for m in arts:
+                if m is None or not m.group(2).strip():
+                    problems.append(f"{b['id']}: у артефакта нет описания (формат: - `файл` — описание)")
+    for extra in sorted(set(blocks) - known):
         problems.append(f"неизвестный id блока: {extra}")
     return problems
 
 
-def render(protocol):
-    q = load(QUESTIONS)
-    p = protocol
-    out = [f"# Протокол интервью — {p.get('employee', '')}", ""]
-    for k, label in (("team", "Команда"), ("role", "Роль"), ("pi", "PI"), ("date", "Дата"), ("status", "Статус")):
-        if p.get(k):
-            out.append(f"- **{label}:** {p[k]}")
-    if p.get("mini_products"):
-        out += ["", "## Мини-продукты", ""]
-        out += [f"- **{m.get('name', '')}** — {m.get('description', '')}" for m in p["mini_products"]]
-    if p.get("pi_goals"):
-        out += ["", "## Цели PI", ""]
-        out += [f"{g.get('n', i)}. {g.get('text', '')} *({g.get('mini_product', '')})*"
-                for i, g in enumerate(p["pi_goals"], 1)]
-    blocks = p.get("blocks") or {}
-    for s in q["sections"]:
-        out += ["", f"## {s['sheet']} — {s['title']}", ""]
-        for b in s["blocks"]:
-            rec = blocks.get(b["id"]) or {}
-            out += [f"### {b['id']}", ""]
-            if rec.get("status") == "skipped":
-                out += [f"*Не задавался: {rec.get('skip_reason', '')}*", ""]
-                continue
-            if not rec:
-                out += ["*Нет ответа*", ""]
-                continue
-            out += [f"**Вопрос:** {rec.get('asked', '')}", "", f"**Ответ:** {rec.get('answer', '')}", ""]
-            for f in rec.get("followups") or []:
-                out += [f"- **{f.get('q', '')}** — {f.get('a', '')}"]
-            if rec.get("followups"):
-                out.append("")
-            for a in rec.get("artifacts") or []:
-                out += [f"- Артефакт `{a.get('file', '')}`: {a.get('description', '')}"]
-            if rec.get("artifact_note"):
-                out += [f"- Артефакт не приложен: {rec['artifact_note']}"]
-            out.append("")
-    if p.get("notes"):
-        out += ["## Заметки интервьюера", "", p["notes"], ""]
-    return "\n".join(out)
-
-
 def main():
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("protocol")
-    ap.add_argument("--pack", help="путь к zip-архиву для ассесора")
-    args = ap.parse_args()
-
-    path = Path(args.protocol)
-    protocol = load(path)
-    base = path.parent
-    problems = check(protocol, base)
-    md_path = path.with_suffix(".md")
-    md_path.write_text(render(protocol), encoding="utf-8")
-    print("Читаемая версия:", md_path)
-    if args.pack:
-        with zipfile.ZipFile(args.pack, "w", zipfile.ZIP_DEFLATED) as z:
-            z.write(path, path.name)
-            z.write(md_path, md_path.name)
-            for rec in (protocol.get("blocks") or {}).values():
-                for a in rec.get("artifacts") or []:
-                    f = a.get("file")
-                    if f and (base / f).exists():
-                        z.write(base / f, f)
-        print("Архив:", args.pack)
+    if len(sys.argv) != 2:
+        print(__doc__)
+        sys.exit(2)
+    problems = check(Path(sys.argv[1]).read_text(encoding="utf-8"))
     if problems:
-        print(f"\nНе хватает ({len(problems)}):", *problems, sep="\n  - ")
+        print(f"Не хватает ({len(problems)}):", *problems, sep="\n  - ")
         sys.exit(1)
     print("Протокол полный.")
 
