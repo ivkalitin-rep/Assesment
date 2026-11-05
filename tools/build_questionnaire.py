@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
-"""Generate references/questionnaire.json and references/questionnaire.md from the Excel template.
+"""Generate the questionnaire files for both skills from the Excel template.
 
-Run this only when the template (assets/assessment_template.xlsx) changes:
+Run this only when the template (product-assessment-scoring/assets/assessment_template.xlsx) changes:
 
-    python3 scripts/build_questionnaire.py
+    python3 tools/build_questionnaire.py
+
+Outputs:
+  * product-assessment-scoring/references/questionnaire.{json,md}  - questions + scoring rules (assessors only);
+  * product-assessment-interview/references/questions.{json,md}    - questions only, NO scoring rules,
+    points or level descriptions (this skill is given to employees).
 
 The template layout (see the "Вводные данные" sheet, item 7):
   * column A                         - the question;
@@ -19,8 +24,11 @@ from pathlib import Path
 import openpyxl
 from openpyxl.utils import column_index_from_string, get_column_letter
 
-ROOT = Path(__file__).resolve().parent.parent
+REPO = Path(__file__).resolve().parent.parent
+ROOT = REPO / "product-assessment-scoring"
+INTERVIEW = REPO / "product-assessment-interview"
 TEMPLATE = ROOT / "assets" / "assessment_template.xlsx"
+ARTIFACT_RE = re.compile(r"артефакт|показать|продемонстрир|подтверд|подтвержд", re.I)
 
 # Order in which the interview goes. "Рынок" is intentionally excluded.
 SECTIONS = [
@@ -124,7 +132,7 @@ def build():
 
 def to_markdown(data):
     out = ["# Опросник продуктового ассесмента (сгенерировано из шаблона)", "",
-           "Файл сгенерирован `scripts/build_questionnaire.py`. Не редактируйте вручную: правьте Excel-шаблон и перегенерируйте.",
+           "Файл сгенерирован `tools/build_questionnaire.py`. Не редактируйте вручную: правьте Excel-шаблон и перегенерируйте.",
            "",
            "Формат: каждый **блок** = вопросы + правила начисления баллов. `id` правила используется как ключ в JSON с оценками.",
            "Баллы внутри одной строки складываются по уровням; варианты внутри одного правила взаимоисключающие (выбирается один).",
@@ -149,8 +157,47 @@ def to_markdown(data):
     return "\n".join(out)
 
 
+def interview_data(data):
+    """Questions only: strip everything that reveals how answers are scored."""
+    out = {"sections": []}
+    for s in data["sections"]:
+        blocks = []
+        for b in s["blocks"]:
+            blocks.append({
+                "id": b["id"],
+                "questions": b["questions"],
+                "needs_artifact": any(ARTIFACT_RE.search(r["text"]) for r in b["rules"]),
+                "ask_why_if_no": min(r["level"] for r in b["rules"]) >= 3,
+            })
+        out["sections"].append({"code": s["code"], "sheet": s["sheet"], "title": s["title"], "blocks": blocks})
+    return out
+
+
+def interview_markdown(idata):
+    out = ["# Вопросы интервью", "",
+           "Файл сгенерирован `tools/build_questionnaire.py` из Excel-шаблона. Не редактируйте вручную.", "",
+           "Обозначения: **[артефакт]** — попроси приложить подтверждающий артефакт (скриншот, файл, выдержку; не ссылку). "
+           "**[если «нет» — почему?]** — на ответ «не делали / нет» задай один вопрос «почему?».", ""]
+    for s in idata["sections"]:
+        out += [f"## {s['sheet']} — {s['title']}", ""]
+        for b in s["blocks"]:
+            flags = []
+            if b["needs_artifact"]:
+                flags.append("**[артефакт]**")
+            if b["ask_why_if_no"]:
+                flags.append("**[если «нет» — почему?]**")
+            out += [f"### `{b['id']}` {' '.join(flags)}".rstrip(), ""]
+            for q in b["questions"]:
+                out += ["> " + q.replace("\n", "\n> "), ""]
+    return "\n".join(out)
+
+
 if __name__ == "__main__":
     data = build()
+    idata = interview_data(data)
+    (INTERVIEW / "references").mkdir(parents=True, exist_ok=True)
+    (INTERVIEW / "references" / "questions.json").write_text(json.dumps(idata, ensure_ascii=False, indent=1), encoding="utf-8")
+    (INTERVIEW / "references" / "questions.md").write_text(interview_markdown(idata), encoding="utf-8")
     (ROOT / "references" / "questionnaire.json").write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
     (ROOT / "references" / "questionnaire.md").write_text(to_markdown(data), encoding="utf-8")
     for s in data["sections"]:
