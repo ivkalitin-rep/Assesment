@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
-"""Generate the questionnaire files for both skills from the Excel template.
+"""Generate the questionnaire files for all skills from the master Excel template.
 
-Run this only when the template (product-assessment-scoring/assets/assessment_template.xlsx) changes:
+The master template is template/assessment_template.xlsx. Run this after it changes:
 
     python3 tools/build_questionnaire.py
 
-Outputs:
-  * product-assessment-scoring/references/questionnaire.{json,md}  - questions + scoring rules (assessors only);
-  * product-assessment-interview/references/questions.{json,md}    - questions only, NO scoring rules,
-    points or level descriptions (this skill is given to employees).
+What it does:
+  * copies the template into the assets/ of the skills that fill Excel:
+      single-skill/product-assessment, two-skills/product-assessment-scoring;
+  * writes references/questionnaire.{json,md} (questions + scoring rules) into those two skills;
+  * writes two-skills/product-assessment-interview/references/questions.{json,md} - questions only,
+    NO scoring rules, points or level descriptions (this skill is given to employees).
 
 The template layout (see the "Вводные данные" sheet, item 7):
   * column A                         - the question;
@@ -19,15 +21,16 @@ The template layout (see the "Вводные данные" sheet, item 7):
 """
 import json
 import re
+import shutil
 from pathlib import Path
 
 import openpyxl
 from openpyxl.utils import column_index_from_string, get_column_letter
 
 REPO = Path(__file__).resolve().parent.parent
-ROOT = REPO / "product-assessment-scoring"
-INTERVIEW = REPO / "product-assessment-interview"
-TEMPLATE = ROOT / "assets" / "assessment_template.xlsx"
+TEMPLATE = REPO / "template" / "assessment_template.xlsx"
+SCORING_SKILLS = [REPO / "single-skill" / "product-assessment", REPO / "two-skills" / "product-assessment-scoring"]
+INTERVIEW = REPO / "two-skills" / "product-assessment-interview"
 ARTIFACT_RE = re.compile(r"артефакт|показать|продемонстрир|подтверд|подтвержд", re.I)
 
 # Order in which the interview goes. "Рынок" is intentionally excluded.
@@ -194,12 +197,15 @@ def interview_markdown(idata):
 
 if __name__ == "__main__":
     data = build()
+    for skill in SCORING_SKILLS:
+        (skill / "assets").mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(TEMPLATE, skill / "assets" / "assessment_template.xlsx")
+        (skill / "references" / "questionnaire.json").write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
+        (skill / "references" / "questionnaire.md").write_text(to_markdown(data), encoding="utf-8")
     idata = interview_data(data)
     (INTERVIEW / "references").mkdir(parents=True, exist_ok=True)
     (INTERVIEW / "references" / "questions.json").write_text(json.dumps(idata, ensure_ascii=False, indent=1), encoding="utf-8")
     (INTERVIEW / "references" / "questions.md").write_text(interview_markdown(idata), encoding="utf-8")
-    (ROOT / "references" / "questionnaire.json").write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
-    (ROOT / "references" / "questionnaire.md").write_text(to_markdown(data), encoding="utf-8")
     for s in data["sections"]:
         print(f"{s['sheet']}: {len(s['blocks'])} блоков, сумма правил {s['rules_max_sum']} / max {s['max_total']}",
               s["rules_max_per_level"])

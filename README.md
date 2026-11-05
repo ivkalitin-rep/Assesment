@@ -3,10 +3,24 @@
 Скиллы для Claude, которые проводят **продуктовый ассесмент PM/PO** мини-продуктов МЕТА по модели продуктовой
 зрелости (опросник «Ассесмент PM V17 2026»).
 
-> **Ветки.** В `main` лежит вариант из одного скилла `product-assessment`: интервью и оценка вместе.
-> В этой ветке — вариант из **двух скиллов**: вопросы и правила оценки разделены, чтобы сотрудник не видел методику оценки.
+В репозитории два варианта — выберите один:
+
+| Папка | Вариант | Когда подходит |
+|---|---|---|
+| [`single-skill/`](single-skill) | **Единый скилл** `product-assessment`: интервью и оценка в одном скилле | самопроверка; ассесор сам ведёт интервью в своём чате; методика не секрет |
+| [`two-skills/`](two-skills) | **Два раздельных скилла**: `product-assessment-interview` (сотрудникам) и `product-assessment-scoring` (ассесорам) | сотрудник проходит интервью сам и не должен видеть правила оценки |
 
 ## Как это работает
+
+### Единый скилл
+
+1. Знакомство: ФИО, команда, роль, мини-продукты, PI.
+2. Цели PI.
+3. Вопросы по одному: Гипотезы → ЦА → Метрики → Цели и стратегия (блок «Рынок» не используется).
+4. Баллы по правилам опросника и методички с проверкой артефактов.
+5. Excel: листы срезов, «Радар», «Зоны роста» + отчёт `.md`.
+
+### Два скилла
 
 ```
 Сотрудник                                   Ассесор
@@ -19,62 +33,84 @@ product-assessment-interview                product-assessment-scoring
   4. Выдаёт протокол (json + md + zip)  ──►   9. Обратную связь сотруднику даёт ассесор
 ```
 
-**Интервьюер** (`product-assessment-interview`) — для сотрудников. Содержит только вопросы и правила ведения
-интервью. Правил начисления, баллов, описаний уровней и шаблона Excel в нём нет. Он ничего не оценивает.
-
-**Оценщик** (`product-assessment-scoring`) — только для ассесоров. Содержит методику, правила начисления,
-Excel-шаблон и скрипт заполнения.
+В интервьюере нет правил начисления, баллов, описаний уровней и шаблона Excel: он ничего не оценивает.
 
 ## Структура
 
 ```
-product-assessment-interview/          # раздаётся сотрудникам
-├── SKILL.md                           # ход интервью, перерыв, формат протокола
-├── references/
-│   ├── interview_rules.md             # как вести интервью (без правил оценки)
-│   ├── questions.md                   # вопросы с пометками [артефакт] и [если «нет» — почему?]
-│   └── questions.json
-├── scripts/check_protocol.py          # проверка полноты протокола, md-версия и zip для ассесора
-└── examples/sample_protocol.json
+template/assessment_template.xlsx      # мастер-шаблон Excel (правьте только его)
+tools/build_questionnaire.py           # шаблон → файлы вопросов и копии шаблона во всех скиллах
 
-product-assessment-scoring/            # только для ассесоров
-├── SKILL.md                           # как оценивать протокол и заполнять Excel
-├── assets/assessment_template.xlsx
-├── references/
-│   ├── methodology.md                 # «Вводные данные», «Идеи к ассесменту», как считать балл
-│   ├── questionnaire.md               # вопросы, уровни, правила начисления с id
-│   └── questionnaire.json
-├── scripts/fill_assessment.py         # результаты JSON → заполненный Excel (+ отчёт .md)
-└── examples/{sample_protocol.json, sample_results.json}
+single-skill/product-assessment/       # единый скилл
+├── SKILL.md
+├── assets/assessment_template.xlsx    # копия мастер-шаблона
+├── references/{methodology.md, questionnaire.md, questionnaire.json}
+├── scripts/fill_assessment.py
+└── examples/sample_results.json
 
-tools/build_questionnaire.py           # шаблон Excel → файлы вопросов для обоих скиллов
+two-skills/
+├── product-assessment-interview/      # раздаётся сотрудникам
+│   ├── SKILL.md
+│   ├── references/{interview_rules.md, questions.md, questions.json}
+│   ├── scripts/check_protocol.py
+│   └── examples/sample_protocol.json
+└── product-assessment-scoring/        # только для ассесоров
+    ├── SKILL.md
+    ├── assets/assessment_template.xlsx
+    ├── references/{methodology.md, questionnaire.md, questionnaire.json}
+    ├── scripts/fill_assessment.py
+    └── examples/{sample_protocol.json, sample_results.json}
 ```
 
 ## Установка
 
 **Claude.ai / Claude Desktop:** заархивируйте папку нужного скилла в zip и загрузите в *Settings → Capabilities → Skills*.
-Нужно включённое выполнение кода (Code execution).
+Нужно включённое выполнение кода (Code execution). Например, для единого скилла:
 
 ```bash
-zip -r product-assessment-interview.zip product-assessment-interview
+cd single-skill && zip -r product-assessment.zip product-assessment
 ```
 
+Для двух скиллов:
+
 ```bash
-zip -r product-assessment-scoring.zip product-assessment-scoring
+cd two-skills && zip -r product-assessment-interview.zip product-assessment-interview && zip -r product-assessment-scoring.zip product-assessment-scoring
 ```
 
 **Claude Code:** скопируйте папку скилла в `~/.claude/skills/`.
 
-Кому что раздавать:
-- сотрудникам — **только** `product-assessment-interview`;
-- ассесорам — `product-assessment-scoring` (и при желании интервьюер, чтобы видеть, как идёт интервью).
+Вариант с двумя скиллами: сотрудникам раздаётся **только** `product-assessment-interview`, ассесорам — `product-assessment-scoring`.
 
-## Ограничения
+## Ограничения варианта с двумя скиллами
 
-- Протокол — это файл у сотрудника, и до передачи ассесору его можно отредактировать. Чтобы сверять спорные места,
-  интервьюер просит сотрудника приложить ссылку на чат интервью, если среда позволяет ей поделиться.
+- Протокол — файл у сотрудника, и до передачи ассесору его можно отредактировать. Интервьюер просит приложить
+  ссылку на чат интервью, если среда позволяет ей поделиться.
 - Описания артефактов в протоколе делает интервьюер. Ассесор может попросить оригиналы и сверить.
-- Вопросы интервью сотруднику видны: файлы интервьюера открыты так же, как любой скилл. Закрыты правила и баллы.
+- Вопросы интервью сотруднику видны. Закрыты правила начисления и баллы.
+
+## Общие правила и синхронизация
+
+Правила интервью (один вопрос, ответ обязателен, мини-продукты, без подсказок, артефакты вместо ссылок, перерыв)
+и методика оценки описаны в обоих вариантах. **Меняя правила в одном варианте, переносите их в другой:**
+
+| Что меняется | Единый скилл | Два скилла |
+|---|---|---|
+| Ход интервью, вопросы, перерыв | `single-skill/product-assessment/SKILL.md` | `two-skills/product-assessment-interview/SKILL.md`, `references/interview_rules.md` |
+| Как считать баллы, зоны роста | `single-skill/product-assessment/references/methodology.md` | `two-skills/product-assessment-scoring/references/methodology.md` |
+| Заполнение Excel | `single-skill/product-assessment/scripts/fill_assessment.py` | `two-skills/product-assessment-scoring/scripts/fill_assessment.py` |
+
+Вопросы и правила начисления из Excel синхронизирует генератор.
+
+## Если изменился шаблон
+
+Положите новую версию в `template/assessment_template.xlsx` и запустите:
+
+```bash
+python3 tools/build_questionnaire.py
+```
+
+Скрипт обновит копии шаблона и файлы вопросов во всех трёх скиллах и выведет суммы максимальных баллов по срезам.
+Сверьте их с максимумами из «Вводных данных» (25 / 16 / 24 / 12).
 
 ## Проверка скриптов
 
@@ -83,20 +119,13 @@ pip install lxml openpyxl
 ```
 
 ```bash
-python3 product-assessment-interview/scripts/check_protocol.py product-assessment-interview/examples/sample_protocol.json
+python3 single-skill/product-assessment/scripts/fill_assessment.py single-skill/product-assessment/examples/sample_results.json -o sample.xlsx
 ```
 
 ```bash
-python3 product-assessment-scoring/scripts/fill_assessment.py product-assessment-scoring/examples/sample_results.json -o sample.xlsx --report sample.md
+python3 two-skills/product-assessment-interview/scripts/check_protocol.py two-skills/product-assessment-interview/examples/sample_protocol.json
 ```
-
-## Если изменился шаблон
-
-Положите новую версию в `product-assessment-scoring/assets/assessment_template.xlsx` и перегенерируйте вопросы
-для обоих скиллов:
 
 ```bash
-python3 tools/build_questionnaire.py
+python3 two-skills/product-assessment-scoring/scripts/fill_assessment.py two-skills/product-assessment-scoring/examples/sample_results.json -o sample.xlsx
 ```
-
-Скрипт выведет суммы максимальных баллов по срезам. Сверьте их с максимумами из «Вводных данных» (25 / 16 / 24 / 12).
